@@ -1,1 +1,1 @@
-# app_crypto
+#  CRYPTO smallCap-streamlit-app
