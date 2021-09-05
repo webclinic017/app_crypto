@@ -11,7 +11,7 @@ import datetime
 from collections import defaultdict
 from utilities.DB_connection import init_tcp
 from utilities.common_data_retrieving import get_table_download_link, load_overall
-from strategy.Small_cap_Found_Filter import get_indicators, filter_onePeriod, unique_selection_30, month_distribution, get_future_daily_ret_multiple, stop_loss, after_buy_multiple
+from strategy.Small_cap_Found_Filter import get_indicators, filter_onePeriod, month_distribution, get_future_daily_ret_multiple, stop_loss, after_buy_multiple
 
 
 # call back function
@@ -110,7 +110,6 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
 
         slippage = st.number_input(label='Slippage (%)', min_value=0.0, value=2.0, step=0.01)
 
-        unique_selection_30_bool = st.checkbox(label='Month unique selection', value=True)
 
         submitted = st.form_submit_button("Submit")
 
@@ -131,9 +130,6 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
             if  type(reserch) is tuple:
                 st.write('No Results Avaible')
             else:
-                # if 30 days unique selection
-                if unique_selection_30_bool:
-                    reserch = unique_selection_30(reserch)
 
                 # trailing stop loss
                 symbols = reserch['stocks'].to_list()
@@ -147,7 +143,6 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
                 for sub in after_buy:
                     for key in sub:
                         res[key].append(sub[key])
-
                 stop_loss_ret = dict(res)
 
                 # replace
@@ -234,14 +229,7 @@ def generate_charts(month_table):
     st.bar_chart(data=month_table['Transactions'])
 
 
-
-
-
-
-
-
-
-def portfolio(filter_csv, tcp):
+def portfolio_small_cap(filter_csv, tcp):
     with st.form("Form.3:"):
         # start date and end date
         st.write('Date Range')
@@ -352,6 +340,7 @@ def portfolio(filter_csv, tcp):
             if  type(reserch) is tuple:
                 st.write('No Results Avaible')
             else:
+
                 # trailing stop loss
                 symbols = reserch['stocks'].to_list()
                 dates = reserch['date'].dt.strftime('%Y-%m-%d').to_list()
@@ -371,18 +360,6 @@ def portfolio(filter_csv, tcp):
                 reserch['max_price_during_holding_period'] = stop_loss_ret['max_prices']
                 reserch['min_price_during_holding_period'] = stop_loss_ret['min_prices']
                 reserch['actual_holding_period'] = stop_loss_ret['actual_holdings']
-
-                sell_day = []
-                for count, value in enumerate(stop_loss_ret['actual_holdings']):
-                    af = datetime.datetime.strptime(dates[count], "%Y-%m-%d")
-                    single_sell = af + datetime.timedelta(days=value)
-                    sell_day.append(single_sell.strftime("%Y-%m-%d"))
-
-                st.write(symbols)
-                st.write(dates)
-                st.write(stop_loss_ret['actual_holdings'])
-                st.write('myway')
-                st.write(sell_day)
 
                 # round result
                 display_total_df = reserch.copy()
@@ -451,6 +428,21 @@ def portfolio(filter_csv, tcp):
                 st.write('Overall.csv (Rounded)')
                 st.markdown(get_table_download_link(display_total_df, 'Overall'), unsafe_allow_html=True)
 
+'''sell_day = []
+                for count, value in enumerate(stop_loss_ret['actual_holdings']):
+                    single_sell = dates[count] + datetime.timedelta(days=value)
+                    sell_day.append(single_sell)
+
+                st.write(symbols)
+                st.write(dates)
+                st.write(stop_loss_ret['actual_holdings'])
+                st.write('myway')
+                st.write(sell_day)'''
+
+
+
+
+
 def app():
     # initialize
     if "submitted" not in st.session_state:
@@ -474,7 +466,7 @@ def app():
 
     # choose strategy
     strategy_name = st.selectbox(
-        label="Strategy", options=["Small Cap Fund Strategy Daily-Restricted", "Portfolio",
+        label="Strategy", options=["Small Cap Fund Strategy Daily-Restricted", "Portfolio Small Cap Fund Strategy",
                                    "None"]
     )
     # empty strategy
@@ -484,5 +476,5 @@ def app():
     elif strategy_name == "Small Cap Fund Strategy Daily-Restricted":
         small_cap_fund_daily_restricted(filter_csv, tcp)
 
-    elif strategy_name == "Portfolio":
-        portfolio(filter_csv, tcp)
+    elif strategy_name == "Portfolio Small Cap Fund Strategy":
+        portfolio_small_cap(filter_csv, tcp)

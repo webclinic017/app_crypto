@@ -4,7 +4,7 @@
 
 import streamlit as st
 from utilities.multipage import MultiPage
-from pages import home, data_visualization, backtesting
+from pages import home, data_visualization, backtesting, portfolio
 from utilities.SessionState import get
 
 
