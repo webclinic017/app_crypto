@@ -128,7 +128,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
                                        median_daily_dollar_vol_upper=median_daily_volume_upper,
                                        dollar_vol_ratio_lower=dollar_vol_ratio_lower,
                                        dollar_vol_ratio_upper=dollar_vol_ratio_upper)
-            if  type(reserch) is tuple:
+            if  type(reserch) is tuple or reserch.empty:
                 st.write('No Results Avaible')
             else:
                 # if 30 days unique selection
@@ -349,9 +349,10 @@ def portfolio(filter_csv, tcp):
                                        median_daily_dollar_vol_upper=median_daily_volume_upper,
                                        dollar_vol_ratio_lower=dollar_vol_ratio_lower,
                                        dollar_vol_ratio_upper=dollar_vol_ratio_upper)
-            if  type(reserch) is tuple:
+            if  type(reserch) is tuple or reserch.empty:
                 st.write('No Results Avaible')
             else:
+
                 # trailing stop loss
                 symbols = reserch['stocks'].to_list()
                 dates = reserch['date'].dt.strftime('%Y-%m-%d').to_list()
