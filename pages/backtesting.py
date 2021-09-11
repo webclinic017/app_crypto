@@ -23,7 +23,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
     with st.form("Form.3:"):
         # start date and end date
         st.write('Date Range')
-        col1, col2 = st.beta_columns(2)
+        col1, col2 = st.columns(2)
         with col1:
             start_date = st.date_input(
                 label="Start date",
@@ -42,7 +42,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
         end_date = end_date.strftime("%Y-%m-%d")  # end date
         # price range
         st.write('Price Range')
-        col1, col2 = st.beta_columns(2)
+        col1, col2 = st.columns(2)
         with col1:
             price_lower_limit = st.number_input(
                 label="Price lower bound($)", min_value=0.0, value=1.0
@@ -53,7 +53,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
             )
         # Return lookback
         st.write('Short Term Return Lookback')
-        col11, col22 = st.beta_columns(2)
+        col11, col22 = st.columns(2)
         with col11:
             # short term ret range
             short_term_ret_lower = st.number_input(label='Lower bound(%)', value=10.0, min_value=-90.0, step=1.0,
@@ -65,7 +65,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
             short_term_ret_upper /= 100
 
         st.write('Long Term Return Lookback')
-        col111, col222 = st.beta_columns(2)
+        col111, col222 = st.columns(2)
         with col111:
             # long term ret range
             long_term_ret_lower = st.number_input(label='Lower bound(%)', value=20.0, min_value=-90.0, step=1.0,
@@ -78,7 +78,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
 
         # volume lookback
         st.write('Volume Lookback')
-        col1111, col2222 = st.beta_columns(2)
+        col1111, col2222 = st.columns(2)
         with col1111:
             avg_daily_dollar_vol_lower = st.number_input(label='Average Daily Dollar Volume Lower Bound($)',
                                                          value=100000.0, min_value=0.0, step=0.01)
@@ -91,7 +91,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
                                                         min_value=0.0, step=0.01)
         # dollar volume ratio range
         st.write('Dollar Volume Ratio Range')
-        col11111, col22222 = st.beta_columns(2)
+        col11111, col22222 = st.columns(2)
         with col11111:
             dollar_vol_ratio_lower = st.number_input(label='Ratio Lower Bound', min_value=0.0, value=3.0,
                                                      step=0.01)
@@ -99,7 +99,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
             dollar_vol_ratio_upper = st.number_input(label='Ratio Upper Bound', min_value=0.0, value=100.0, step=0.01)
 
         st.write('Trailing Stop loss')
-        col111111, col222222 = st.beta_columns(2)
+        col111111, col222222 = st.columns(2)
         with col111111:
             range_test = st.number_input(label='Days Holding Test', min_value=1, value=45, step=1)
             dropdown_allow_in_gain = st.number_input(label='Stop Loss After-Test Period(%)', min_value=0, value=25)
@@ -245,7 +245,7 @@ def portfolio(filter_csv, tcp):
     with st.form("Form.3:"):
         # start date and end date
         st.write('Date Range')
-        col1, col2 = st.beta_columns(2)
+        col1, col2 = st.columns(2)
         with col1:
             start_date = st.date_input(
                 label="Start date",
@@ -264,7 +264,7 @@ def portfolio(filter_csv, tcp):
         end_date = end_date.strftime("%Y-%m-%d")  # end date
         # price range
         st.write('Price Range')
-        col1, col2 = st.beta_columns(2)
+        col1, col2 = st.columns(2)
         with col1:
             price_lower_limit = st.number_input(
                 label="Price lower bound($)", min_value=0.0, value=1.0
@@ -275,7 +275,7 @@ def portfolio(filter_csv, tcp):
             )
         # Return lookback
         st.write('Short Term Return Lookback')
-        col11, col22 = st.beta_columns(2)
+        col11, col22 = st.columns(2)
         with col11:
             # short term ret range
             short_term_ret_lower = st.number_input(label='Lower bound(%)', value=10.0, min_value=-90.0, step=1.0,
@@ -287,7 +287,7 @@ def portfolio(filter_csv, tcp):
             short_term_ret_upper /= 100
 
         st.write('Long Term Return Lookback')
-        col111, col222 = st.beta_columns(2)
+        col111, col222 = st.columns(2)
         with col111:
             # long term ret range
             long_term_ret_lower = st.number_input(label='Lower bound(%)', value=20.0, min_value=-90.0, step=1.0,
@@ -300,7 +300,7 @@ def portfolio(filter_csv, tcp):
 
         # volume lookback
         st.write('Volume Lookback')
-        col1111, col2222 = st.beta_columns(2)
+        col1111, col2222 = st.columns(2)
         with col1111:
             avg_daily_dollar_vol_lower = st.number_input(label='Average Daily Dollar Volume Lower Bound($)',
                                                          value=100000.0, min_value=0.0, step=0.01)
@@ -313,7 +313,7 @@ def portfolio(filter_csv, tcp):
                                                         min_value=0.0, step=0.01)
         # dollar volume ratio range
         st.write('Dollar Volume Ratio Range')
-        col11111, col22222 = st.beta_columns(2)
+        col11111, col22222 = st.columns(2)
         with col11111:
             dollar_vol_ratio_lower = st.number_input(label='Ratio Lower Bound', min_value=0.0, value=3.0,
                                                      step=0.01)
@@ -321,7 +321,7 @@ def portfolio(filter_csv, tcp):
             dollar_vol_ratio_upper = st.number_input(label='Ratio Upper Bound', min_value=0.0, value=100.0, step=0.01)
 
         st.write('Trailing Stop loss')
-        col111111, col222222 = st.beta_columns(2)
+        col111111, col222222 = st.columns(2)
         with col111111:
             range_test = st.number_input(label='Days Holding Test', min_value=1, value=45, step=1)
             dropdown_allow_in_gain = st.number_input(label='Stop Loss After-Test Period(%)', min_value=0, value=25)
