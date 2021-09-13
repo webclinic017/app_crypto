@@ -10,8 +10,9 @@ from datetime import date
 import datetime
 from collections import defaultdict
 from utilities.DB_connection import init_tcp
-from utilities.common_data_retrieving import get_table_download_link, load_overall
-from strategy.Small_cap_Found_Filter import get_indicators, filter_onePeriod, unique_selection_30, month_distribution, get_future_daily_ret_multiple, stop_loss, after_buy_multiple
+from utilities.common_data_retrieving import get_table_download_link, load_overall, load_dataset
+from strategy.filter import get_indicators, filter_onePeriod, unique_selection_30, month_distribution, get_future_daily_ret_multiple, stop_loss, after_buy_multiple
+from strategy.portfolio import backtester_engine
 
 
 # call back function
@@ -330,7 +331,18 @@ def portfolio(filter_csv, tcp):
             stop_loss_test_period = st.number_input(label='Stop Loss Test Period (%)', min_value=1, value=40)
             stop_gain_test_period = st.number_input(label='Stop Gain Resistance Test Period(%)', min_value=1, value=50)
 
-        slippage = st.number_input(label='Slippage (%)', min_value=0.0, value=2.0, step=0.01)
+
+        st.write('Portfolio')
+        col111111, col222222 = st.columns(2)
+        with col111111:
+            cash = st.number_input(label='Initial Investment', min_value=1000, value=10000, step=1)
+            slippage = st.number_input(label='Slippage (%)', min_value=0.0, value=2.0, step=0.01)
+
+        with col222222:
+            max_weight = st.number_input(label='Max Weight Single Position(%)', min_value=0, value=20)
+            min_weight = st.number_input(label='Min Weight Single Position(%)', min_value=0, value=10)
+
+
 
 
         submitted = st.form_submit_button("Submit")
@@ -373,17 +385,11 @@ def portfolio(filter_csv, tcp):
                 reserch['min_price_during_holding_period'] = stop_loss_ret['min_prices']
                 reserch['actual_holding_period'] = stop_loss_ret['actual_holdings']
 
-                sell_day = []
-                for count, value in enumerate(stop_loss_ret['actual_holdings']):
-                    af = datetime.datetime.strptime(dates[count], "%Y-%m-%d")
-                    single_sell = af + datetime.timedelta(days=value)
-                    sell_day.append(single_sell.strftime("%Y-%m-%d"))
-
-                st.write(symbols)
-                st.write(dates)
-                st.write(stop_loss_ret['actual_holdings'])
-                st.write('myway')
-                st.write(sell_day)
+                #sell_day = []
+                #for count, value in enumerate(stop_loss_ret['actual_holdings']):
+                #    af = datetime.datetime.strptime(dates[count], "%Y-%m-%d")
+                #    single_sell = af + datetime.timedelta(days=value)
+                #    sell_day.append(single_sell.strftime("%Y-%m-%d"))
 
                 # round result
                 display_total_df = reserch.copy()
@@ -451,6 +457,9 @@ def portfolio(filter_csv, tcp):
                 st.markdown(get_table_download_link(reserch, 'Overall'), unsafe_allow_html=True)
                 st.write('Overall.csv (Rounded)')
                 st.markdown(get_table_download_link(display_total_df, 'Overall'), unsafe_allow_html=True)
+                # link
+                st.write("check out this [link](http://18.118.231.59:5000/)")
+
 
 def app():
     # initialize

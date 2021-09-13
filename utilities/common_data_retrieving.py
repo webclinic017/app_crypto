@@ -16,11 +16,14 @@ from .DB_connection import run_query_pandas
 def get_all_symbols_list(conn):
     tot_symbol = run_query_pandas("SELECT * FROM tot_symbols", conn)
     symbols_tot = tot_symbol["symbol"].to_list()
-    #ex_list = run_query_pandas("SELECT * FROM exceptions", conn)
-    #symbols_ex = ex_list["symbol_ex"].to_list()
-    #symbols = list(set(symbols_tot) - set(symbols_ex))
 
     return symbols_tot#sorted(symbols)
+
+def get_all_symbols_list(conn, table_name):
+    tot_symbol = run_query_pandas(f'''SELECT * FROM "{table_name}"''', conn)
+
+    return sy
+
 
 @st.cache(show_spinner=False)
 def load_overall():
