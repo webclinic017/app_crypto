@@ -2,11 +2,15 @@
 # method to retrieve reused data
 
 
+import os
+import glob
 import base64
+import concurrent.futures
 import psycopg2
 import pandas as pd
 import streamlit as st
 from .DB_connection import run_query_pandas
+from .datastructures import OHLCV
 
 
 @st.cache(
@@ -28,6 +32,26 @@ def get_all_symbols_list(conn, table_name):
 @st.cache(show_spinner=False)
 def load_overall():
     return pd.read_csv('data/Overall.csv')
+
+@st.cache(show_spinner=False)
+def load_dataset(dir_path, workers=6):
+    # helper function: load single
+    def load_single(csv_path):
+        return OHLCV(pd.read_csv(csv_path))
+        # return pd.read_csv(csv_path, parse_dates=['date'], date_parser=lambda x: dt.datetime.strptime(x, '%Y-%m-%d'))
+
+    # csv path
+    csv_paths = list(glob.glob(os.path.join(dir_path, '*.csv')))
+    csv_names = [os.path.basename(cur_path).split('.')[0] for cur_path in csv_paths]
+
+    # load dataset
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+        data = list(pool.map(load_single, csv_paths))
+    dataset = {}
+    for cur_name, cur_data in zip(csv_names, data):
+        dataset[cur_name] = cur_data
+
+    return dataset
 
 def get_table_download_link(df, df_name):
     """Generates a link allowing the data in a given panda dataframe to be downloaded

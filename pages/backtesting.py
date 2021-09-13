@@ -2,12 +2,14 @@
 # backtesting page
 
 
+import os
 import math
 import numpy as np
 import pandas as pd
 import streamlit as st
-from datetime import date
 import datetime
+import quantstats as qs
+from datetime import date
 from collections import defaultdict
 from utilities.DB_connection import init_tcp
 from utilities.common_data_retrieving import get_table_download_link, load_overall, load_dataset
@@ -236,13 +238,7 @@ def generate_charts(month_table):
 
 
 
-
-
-
-
-
-
-def portfolio(filter_csv, tcp):
+def portfolio(filter_csv, dataset, tcp):
     with st.form("Form.3:"):
         # start date and end date
         st.write('Date Range')
@@ -361,10 +357,9 @@ def portfolio(filter_csv, tcp):
                                        median_daily_dollar_vol_upper=median_daily_volume_upper,
                                        dollar_vol_ratio_lower=dollar_vol_ratio_lower,
                                        dollar_vol_ratio_upper=dollar_vol_ratio_upper)
-            if  type(reserch) is tuple or reserch.empty:
+            if type(reserch) is tuple or reserch.empty:
                 st.write('No Results Avaible')
             else:
-
                 # trailing stop loss
                 symbols = reserch['stocks'].to_list()
                 dates = reserch['date'].dt.strftime('%Y-%m-%d').to_list()
@@ -423,30 +418,39 @@ def portfolio(filter_csv, tcp):
                     ["{}".format(int(val)) if not math.isnan(val) else "{}".format(val) for val in
                      display_total_df['median_daily_volume_over_volume_lookback_period']], index=display_total_df.index)
 
+                # run the engine
+                reserch['date'] = reserch['date'].astype(str)
+                engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
+                engine.run()
+                portfolio_rets = pd.Series(engine.cash_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
+                # generate and save the report
+                sp500 = qs.utils.download_returns('SPY')
+                qs.reports.html(portfolio_rets, sp500, output=os.path.join('report', 'report.html'), title='Crypto Strategy Tearsheet')
+
                 # output
                 st.write('## Output:')
                 # performance
-                st.write('Performance:')
-                performance_expander = st.beta_expander(label='Performance')
-                with performance_expander:
-                    trat = get_indicators(reserch)
-                    st.write('Performance:')
-                    trat = trat.set_index('Indicators')
-                    st.table(trat)
-                # month distribution
-                st.write('Month distribution table:')
-                month_expander = st.beta_expander(label='Month distribution')
-                with month_expander:
-                    month_table = month_distribution(reserch)
-                    st.table(month_table)
-                st.write('Median Monthly Return: {}'.format(np.median(month_table['Avg_return'])))
-                st.write('SD Monthly Return: {}'.format(np.std(month_table['Avg_return'])))
-                st.markdown(get_table_download_link(month_table, 'month_distribution'), unsafe_allow_html=True)
-                # month distribution plots
-                st.write('Charts')
-                chart_expander = st.beta_expander(label='Charts')
-                with chart_expander:
-                    generate_charts(month_table)
+                # st.write('Performance:')
+                # performance_expander = st.beta_expander(label='Performance')
+                # with performance_expander:
+                #     trat = get_indicators(reserch)
+                #     st.write('Performance:')
+                #     trat = trat.set_index('Indicators')
+                #     st.table(trat)
+                # # month distribution
+                # st.write('Month distribution table:')
+                # month_expander = st.beta_expander(label='Month distribution')
+                # with month_expander:
+                #     month_table = month_distribution(reserch)
+                #     st.table(month_table)
+                # st.write('Median Monthly Return: {}'.format(np.median(month_table['Avg_return'])))
+                # st.write('SD Monthly Return: {}'.format(np.std(month_table['Avg_return'])))
+                # st.markdown(get_table_download_link(month_table, 'month_distribution'), unsafe_allow_html=True)
+                # # month distribution plots
+                # st.write('Charts')
+                # chart_expander = st.beta_expander(label='Charts')
+                # with chart_expander:
+                #     generate_charts(month_table)
                 # Overall result
                 st.write('Overall Results:')
                 table_expander = st.beta_expander(label='Overall Table')
@@ -481,6 +485,8 @@ def app():
         filter_csv = load_overall()
     info_placeholder_all.success("Overall.csv loaded")
     info_placeholder_all.empty()
+    # fetch csv dataset
+    datasets = load_dataset(dir_path=os.path.join('data', 'csv'))
 
     # choose strategy
     strategy_name = st.selectbox(
@@ -495,4 +501,4 @@ def app():
         small_cap_fund_daily_restricted(filter_csv, tcp)
 
     elif strategy_name == "Portfolio":
-        portfolio(filter_csv, tcp)
+        portfolio(filter_csv, datasets, tcp)
