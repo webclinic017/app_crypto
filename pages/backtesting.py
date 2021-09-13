@@ -423,9 +423,9 @@ def portfolio(filter_csv, dataset, tcp):
                 engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
                 engine.run()
                 portfolio_rets = pd.Series(engine.cash_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
-                # generate and save the report
+                # generate and save the templates
                 sp500 = qs.utils.download_returns('SPY')
-                qs.reports.html(portfolio_rets, sp500, output=os.path.join('report', 'report.html'), title='Crypto Strategy Tearsheet')
+                qs.reports.html(portfolio_rets, sp500, output=os.path.join('templates', 'templates.html'), title='Crypto Strategy Tearsheet')
 
                 # output
                 st.write('## Output:')
