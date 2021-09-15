@@ -180,8 +180,8 @@ class backtester_engine:
                                         stock_to_invest['buy_day'] = symbol_records['buy_day']
                                         stock_to_invest['price'] = symbol_records['price']
                                         stock_to_invest['sell_date'] = symbol_records['sell_date']
-                                investments.append(stock_to_invest)
-                            self.cur_cash = self.cur_cash - (max_perc * portfolio_value * len((list_stock_max)))
+                                    investments.append(stock_to_invest)
+                                self.cur_cash = self.cur_cash - (max_perc * portfolio_value)
                     # i can allocate all to max
                     else:
                         list_stock_max = list_stock_selected
@@ -194,7 +194,7 @@ class backtester_engine:
                                     stock_to_invest['price'] = symbol_records['price']
                                     stock_to_invest['sell_date'] = symbol_records['sell_date']
                             investments.append(stock_to_invest)
-                    self.cur_cash = self.cur_cash - (max_perc * portfolio_value * len((list_stock_max)))
+                        self.cur_cash = self.cur_cash - (max_perc * portfolio_value * len(list_stock_max))
             else:
                 investments
 
