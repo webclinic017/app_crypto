@@ -4,8 +4,9 @@
 # dependencies
 import os
 import random
-import logging
+import streamlit as st
 import datetime as dt
+import streamlit as st
 from dataclasses import dataclass
 from sortedcontainers import SortedList
 from stqdm import stqdm
@@ -70,6 +71,7 @@ class backtester_engine:
         self.transactions_cost = transactions_cost
         self.cash_series = []
         self.portfolio_stocks_value = 0
+        self.log_str = []
         # generate the timeline
         self.timeline = timeline(start_date, end_date)
         # generate the trading actions
@@ -83,12 +85,12 @@ class backtester_engine:
 
     def log(self, dt, txt, warning=False):
         if not warning:
-            logging.info(f'{dt} {txt}')
+            self.log_str.append(f'INFO: {dt} {txt}')
         else:
-            logging.warning(f'{dt} {txt}')
+            self.log_str.append(f'WARNING: {dt} {txt}')
 
     def buy(self, cur_date):
-        if self.cur_cash == 0:
+        if self.cur_cash <= 0:
             investments = []
         else:
             buy = self.buyactions.pop_by_date(cur_date)
@@ -142,7 +144,7 @@ class backtester_engine:
                     max_allocation = self.cur_cash - (max_perc * portfolio_value * len((list_stock_selected)))
                     # chek if i can invest in minimum
                     if max_allocation <= 0:
-                        remainder = self.cur_cash - (max_perc * portfolio_value * len((list_stock_selected) - 1))
+                        remainder = self.cur_cash - (max_perc * portfolio_value * (len(list_stock_selected) - 1))
                         # can i buy at minimum
                         if remainder >= min_perc * portfolio_value:
                             list_stock_max = list_stock_selected[:-1]
@@ -197,12 +199,13 @@ class backtester_engine:
                 investments
 
         if investments:
+            cur_actions = []
             for i in investments:
-                # log
-                self.log(dt=cur_date, txt=f"Buy {i['stock']} at price at {i['price']} with size of {i['size']}")
-                # construct action series
-                cur_actions = []
-                cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size']))
+                if len(i['stock']) != 1:
+                    # log
+                    self.log(dt=cur_date, txt=f"Buy {i['stock']} at price at {i['price']} with size of {i['size']}")
+                    # construct action series
+                    cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size']))
             self.sellactions.add_sell_record(cur_actions)
 
     def sell(self, cur_date):
@@ -211,7 +214,10 @@ class backtester_engine:
             cur_symbol = cur_action.symbol
             # retrieve size & price
             cur_size = cur_action.size
+            # try:
             cur_price = self.dataset[cur_symbol].retrieve_by_date(cur_date).adjClose
+            # except:
+            #     cur_price = self.dataset[cur_symbol].retrieve_by_date((dt.datetime.strptime(cur_date, '%Y-%m-%d') - dt.timedelta(days=1)).strftime('%Y-%m-%d')).adjClose
             # log & change cash
             self.log(dt=cur_date, txt=f"Sell {cur_symbol} at price at {cur_price} with size of {cur_size}")
             self.cur_cash += cur_size * cur_price * (1 - self.transactions_cost)

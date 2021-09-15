@@ -6,8 +6,6 @@ import calendar
 import concurrent
 import multiprocessing
 import concurrent.futures
-import psycopg2
-import streamlit as st
 from psycopg2.pool import ThreadedConnectionPool
 
 def get_date_range(df, start_date, end_date):
