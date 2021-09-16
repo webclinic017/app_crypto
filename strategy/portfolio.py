@@ -72,7 +72,7 @@ class backtester_engine:
         self.cash_series = []
         self.portfolio_stocks_value = 0
         self.portfolio_value_series = []
-        self.log_str = []
+        self.logs = []
         # generate the timeline
         self.timeline = timeline(start_date, end_date)
         # generate the trading actions
@@ -80,17 +80,15 @@ class backtester_engine:
         trading_buydates = overall['date'].tolist()
         trading_selldates = [(dt.datetime.strptime(date, '%Y-%m-%d') + dt.timedelta(days=days)).strftime('%Y-%m-%d') for
                              date, days in zip(trading_buydates, overall['actual_holding_period'].tolist())]
-        self.buyactions = TradingActions()
+        self.buyactions = TradingActions() # TODO: record the also the holding period
         self.buyactions.add_buy_record(trading_symbols, trading_buydates, trading_selldates)
         self.sellactions = TradingActions()
 
-    def log(self, dt, txt, warning=False):
-        if not warning:
-            self.log_str.append(f'INFO: {dt} {txt}')
-        else:
-            self.log_str.append(f'WARNING: {dt} {txt}')
+    def log(self, cur_date, action_type, symbol, volume, price, pct_change):
+        self.logs.append({'date': cur_date, 'action_type': action_type, 'symbol': symbol, 'volume': volume, 'price': price, 'pct_change': pct_change})
 
     def buy(self, cur_date):
+        # TODO: stop buy until sell it
         if self.cur_cash <= 0:
             investments = []
         else:
@@ -110,7 +108,7 @@ class backtester_engine:
                 for symbol_records in list_candidates:
                     list_stock_selected.append(symbol_records['symbol'])
 
-                portfolio_value = self.portfolio_stocks_value + self.cur_cash  #FIXME:
+                portfolio_value = self.portfolio_stocks_value + self.cur_cash  # FIXME: update holding stock value
 
                 # check if there are stock to invest or not
                 if list_stock_selected:
@@ -157,14 +155,13 @@ class backtester_engine:
             for i in investments:
                 if len(i['stock']) != 1:
                     # log
-                    self.log(dt=cur_date, txt=f"Buy {i['stock']} at price at {i['price']} with size of {i['size']}")
+                    self.log(dt=cur_date, txt=f"Buy {i['stock']} at price at {i['price']} with size of {i['size']}") # FIXME:use new log function
                     # construct action series
-                    cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size']))
+                    cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size']))  # TODO: record also the buy price, sell date, holding_period
             self.sellactions.add_sell_record(cur_actions)
         # update portfolio series
-        st.write(self.portfolio_stocks_value) #! test code
-        portfolio_value = self.portfolio_stocks_value + self.cur_cash #! stock value is not updating
-        self.portfolio_value_series.append(portfolio_value) #! test code
+        portfolio_value = self.portfolio_stocks_value + self.cur_cash
+        self.portfolio_value_series.append(portfolio_value)
 
     def sell(self, cur_date):
         sell = self.sellactions.pop_by_date(cur_date)
@@ -174,11 +171,14 @@ class backtester_engine:
             cur_size = cur_action.size
             # try:
             cur_price = self.dataset[cur_symbol].retrieve_by_date(cur_date).adjClose
+            # TODO: evalute buy price to get pct_change
             # except:
             #     cur_price = self.dataset[cur_symbol].retrieve_by_date((dt.datetime.strptime(cur_date, '%Y-%m-%d') - dt.timedelta(days=1)).strftime('%Y-%m-%d')).adjClose
             # log & change cash
-            self.log(dt=cur_date, txt=f"Sell {cur_symbol} at price at {cur_price} with size of {cur_size}")
+            self.log(dt=cur_date, txt=f"Sell {cur_symbol} at price at {cur_price} with size of {cur_size}") #FIXME: use new log function
             self.cur_cash += cur_size * cur_price * (1 - self.transactions_cost)
+    
+    # TODO: add hold function, only log, no actions
 
     def run(self):
         # clear log file
