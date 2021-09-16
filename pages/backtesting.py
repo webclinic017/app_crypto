@@ -412,10 +412,13 @@ def portfolio(filter_csv, dataset, tcp):
                 with st.spinner("Running backtesting engine..."):
                     reserch['date'] = reserch['date'].astype(str)
                     engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
-                    st.write(engine.cur_cash)
                     engine.run()
-                    portfolio_rets = pd.Series(engine.cash_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
-                    st.write(engine.cash_series) #!
+                    portfolio_rets = pd.Series(engine.portfolio_value_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
+                    # a = pd.DataFrame(engine.portfolio_value_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline])
+                    # b = pd.DataFrame(portfolio_rets)
+                    # a.to_csv('a.csv')
+                    # b.to_csv('b.csv')
+                    st.write(pd.DataFrame(engine.portfolio_value_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline])) #!
                     st.write(pd.DataFrame(portfolio_rets)) #!
                     # generate and save the templates
                     sp500 = qs.utils.download_returns('SPY')

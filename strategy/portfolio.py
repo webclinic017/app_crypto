@@ -71,6 +71,7 @@ class backtester_engine:
         self.transactions_cost = transactions_cost
         self.cash_series = []
         self.portfolio_stocks_value = 0
+        self.portfolio_value_series = []
         self.log_str = []
         # generate the timeline
         self.timeline = timeline(start_date, end_date)
@@ -93,108 +94,61 @@ class backtester_engine:
         if self.cur_cash <= 0:
             investments = []
         else:
+            investments = []
             buy = self.buyactions.pop_by_date(cur_date)
-            lsit_candidatas = []
+            list_candidates = []
             for symbol in range(len(buy)):
                 day_symbols = {'symbol': [], 'buy_day': [], 'price': [], 'sell_date': []}
                 day_symbols['symbol'] = buy[symbol].symbol
                 day_symbols['buy_day'] = cur_date
                 day_symbols['price'] = self.dataset[buy[symbol].symbol].retrieve_by_date(cur_date).adjClose
                 day_symbols['sell_date'] = buy[symbol].date2
-                lsit_candidatas.append(day_symbols)
+                list_candidates.append(day_symbols)
 
-            list_stock_selected = []
-            for symbol_records in lsit_candidatas:
-                list_stock_selected.append(symbol_records['symbol'])
+            if list_candidates:
+                list_stock_selected = []
+                for symbol_records in list_candidates:
+                    list_stock_selected.append(symbol_records['symbol'])
 
-            portfolio_value = self.portfolio_stocks_value + self.cur_cash
-            investments = []
-            # check if there are stock to invest or not
-            if list_stock_selected:
-                max_perc = self.max_weight / 100
-                min_perc = self.min_weight / 100
-                n_stocks_max_weight = int(self.cur_cash / (max_perc * portfolio_value))
-                # check if the vector is empty
-                if n_stocks_max_weight == 0:
-                    # check if it possible to invest with minimum
-                    n_stocks_min_weight = int(self.cur_cash / (min_perc * portfolio_value))
-                    # check if empty vector
-                    if n_stocks_min_weight != 0:
-                        # invest everything in minimum
-                        list_stock_min = random.choices(list_stock_selected, k=1)
-                        stock_to_invest = {'stock': list_stock_min[0], 'buy_day': [], 'price': [], 'money_to_invest': self.cur_cash, 'size': [], 'sell_date': []}
-                        for symbol_records in lsit_candidatas:
-                            if list_stock_min[0] == symbol_records['symbol']:
-                                stock_to_invest['size'] = self.cur_cash / (symbol_records['price']*(1+self.transactions_cost))
-                                stock_to_invest['buy_day'] = symbol_records['buy_day']
-                                stock_to_invest['price'] = symbol_records['price']
-                                stock_to_invest['sell_date'] = symbol_records['sell_date']
-                        self.cur_cash = 0
-                        investments.append(stock_to_invest)
-                    # if we can't invest also with minimum
-                    else:
-                        investments
-                # if we can invest with max weight
-                else:
-                    # tutto in max?
-                    list_stock_selected = random.choices(list_stock_selected, k=n_stocks_max_weight + 1)
-                    # si ripetono o no?
-                    list_stock_selected = list(set(list_stock_selected))  # it contains both max and min stocks
+                portfolio_value = self.portfolio_stocks_value + self.cur_cash  #FIXME:
 
-                    max_allocation = self.cur_cash - (max_perc * portfolio_value * len((list_stock_selected)))
-                    # chek if i can invest in minimum
-                    if max_allocation <= 0:
-                        remainder = self.cur_cash - (max_perc * portfolio_value * (len(list_stock_selected) - 1))
-                        # can i buy at minimum
-                        if remainder >= min_perc * portfolio_value:
-                            list_stock_max = list_stock_selected[:-1]
-                            list_stock_min = list_stock_selected[-1]
-                            for i in list_stock_max:
-                                stock_to_invest = {'stock': i, 'buy_day': [], 'price': [], 'money_to_invest': max_perc * portfolio_value, 'size': [], 'sell_date': []}
-                                for symbol_records in lsit_candidatas:
-                                    if i == symbol_records['symbol']:
-                                        stock_to_invest['size'] = (max_perc * portfolio_value) / (symbol_records['price'] * (1+self.transactions_cost))
-                                        stock_to_invest['buy_day'] = symbol_records['buy_day']
-                                        stock_to_invest['price'] = symbol_records['price']
-                                        stock_to_invest['sell_date'] = symbol_records['sell_date']
-                                investments.append(stock_to_invest)
-
-                            # buy as much as i can from the minimum bound
-                            stock_to_invest = {'stock': list_stock_min[0], 'buy_day': [], 'price': [], 'money_to_invest': remainder, 'size': [], 'sell_date': []}
-                            for symbol_records in lsit_candidatas:
-                                if list_stock_min[0] == symbol_records['symbol']:
-                                    stock_to_invest['size'] = remainder / (symbol_records['price']*(1+self.transactions_cost))
-                                    stock_to_invest['buy_day'] = symbol_records['buy_day']
-                                    stock_to_invest['price'] = symbol_records['price']
-                                    stock_to_invest['sell_date'] = symbol_records['sell_date']
-                                investments.append(stock_to_invest)
-                            self.cur_cash = 0
-                        # if can't buy minimum  i leave some cash out
-                        else:
-                            list_stock_max = list_stock_selected
-                            for i in list_stock_max:
-                                stock_to_invest = {'stock': i, 'buy_day': [], 'price': [], 'money_to_invest': max_perc * portfolio_value, 'size': [], 'sell_date': []}
-                                for symbol_records in lsit_candidatas:
-                                    if i == symbol_records['symbol']:
-                                        stock_to_invest['size'] = (max_perc * portfolio_value) / (symbol_records['price']*(1+self.transactions_cost))
-                                        stock_to_invest['buy_day'] = symbol_records['buy_day']
-                                        stock_to_invest['price'] = symbol_records['price']
-                                        stock_to_invest['sell_date'] = symbol_records['sell_date']
-                                    investments.append(stock_to_invest)
-                                self.cur_cash = self.cur_cash - (max_perc * portfolio_value)
-                    # i can allocate all to max
-                    else:
-                        list_stock_max = list_stock_selected
-                        for i in list_stock_max:
-                            stock_to_invest = {'stock': i, 'buy_day': [], 'price': [], 'money_to_invest': max_perc * portfolio_value, 'size': [], 'sell_date': []}
-                            for symbol_records in lsit_candidatas:
-                                if i == symbol_records['symbol']:
-                                    stock_to_invest['size'] = (max_perc * portfolio_value) / (symbol_records['price'] * (1+self.transactions_cost))
-                                    stock_to_invest['buy_day'] = symbol_records['buy_day']
-                                    stock_to_invest['price'] = symbol_records['price']
-                                    stock_to_invest['sell_date'] = symbol_records['sell_date']
+                # check if there are stock to invest or not
+                if list_stock_selected:
+                    # print('2')
+                    max_perc = self.max_weight / 100
+                    min_perc = self.min_weight / 100
+                    # check if the vector is empty
+                    stock_to_invest = {'stock': [], 'buy_day': [], 'price': [], 'money_to_invest': [], 'size': [],
+                                       'sell_date': []}
+                    for i in list_stock_selected:
+                        if self.cur_cash >= max_perc * portfolio_value:
+                            list_stock_selected = random.choices(list_stock_selected, k=len(list_stock_selected))
+                            for single_candidate in list_candidates:
+                                if i == single_candidate['symbol']:
+                                    stock_to_invest['stock'] = single_candidate['symbol']
+                                    stock_to_invest['size'] = (max_perc * portfolio_value) / (single_candidate['price']*(1 + self.transactions_cost))
+                                    stock_to_invest['money_to_invest'] = max_perc * portfolio_value
+                                    stock_to_invest['buy_day'] = single_candidate['buy_day']
+                                    stock_to_invest['price'] = single_candidate['price']
+                                    stock_to_invest['sell_date'] = single_candidate['sell_date']
                             investments.append(stock_to_invest)
-                        self.cur_cash = self.cur_cash - (max_perc * portfolio_value * len(list_stock_max))
+                            self.cur_cash = self.cur_cash - (max_perc * portfolio_value)
+                        elif max_perc * portfolio_value > self.cur_cash >= (min_perc * portfolio_value):
+                            list_stock_selected = random.choices(list_stock_selected, k=len(list_stock_selected))
+                            for single_candidate in list_candidates:
+                                if i == single_candidate['symbol']:
+                                    stock_to_invest['stock'] = single_candidate['symbol']
+                                    stock_to_invest['size'] = self.cur_cash / (single_candidate['price'] * (1 + self.transactions_cost))
+                                    stock_to_invest['money_to_invest'] = self.cur_cash
+                                    stock_to_invest['buy_day'] = single_candidate['buy_day']
+                                    stock_to_invest['price'] = single_candidate['price']
+                                    stock_to_invest['sell_date'] = single_candidate['sell_date']
+                            investments.append(stock_to_invest)
+                            self.cur_cash = 0
+                        else:
+                            pass
+                else:
+                    investments
             else:
                 investments
 
@@ -207,6 +161,10 @@ class backtester_engine:
                     # construct action series
                     cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size']))
             self.sellactions.add_sell_record(cur_actions)
+        # update portfolio series
+        st.write(self.portfolio_stocks_value) #! test code
+        portfolio_value = self.portfolio_stocks_value + self.cur_cash #! stock value is not updating
+        self.portfolio_value_series.append(portfolio_value) #! test code
 
     def sell(self, cur_date):
         sell = self.sellactions.pop_by_date(cur_date)
@@ -234,5 +192,3 @@ class backtester_engine:
             self.buy(cur_date)
             # update portfolio value
             self.cash_series.append(self.cur_cash)
-
-
