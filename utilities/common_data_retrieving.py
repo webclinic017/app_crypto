@@ -23,17 +23,17 @@ def get_all_symbols_list(conn):
 
     return symbols_tot#sorted(symbols)
 
-def get_all_symbols_list(conn, table_name):
-    tot_symbol = run_query_pandas(f'''SELECT * FROM "{table_name}"''', conn)
+# def get_all_symbols_list(conn, table_name):
+#     tot_symbol = run_query_pandas(f'''SELECT * FROM "{table_name}"''', conn)
 
-    return sy
+#     return sy
 
 
-@st.cache(show_spinner=False)
+@st.cache(allow_output_mutation=True)
 def load_overall():
     return pd.read_csv('data/Overall.csv')
 
-@st.cache(show_spinner=False)
+@st.cache(allow_output_mutation=True)
 def load_dataset(dir_path, workers=6):
     # helper function: load single
     def load_single(csv_path):

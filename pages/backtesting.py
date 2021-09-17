@@ -4,6 +4,7 @@
 
 import os
 import math
+import time
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -195,7 +196,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
                 st.write('## Output:')
                 # performance
                 st.write('Performance:')
-                performance_expander = st.beta_expander(label='Performance')
+                performance_expander = st.expander(label='Performance')
                 with performance_expander:
                     trat = get_indicators(reserch)
                     st.write('Performance:')
@@ -203,7 +204,7 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
                     st.table(trat)
                 # month distribution
                 st.write('Month distribution table:')
-                month_expander = st.beta_expander(label='Month distribution')
+                month_expander = st.expander(label='Month distribution')
                 with month_expander:
                     month_table = month_distribution(reserch)
                     st.table(month_table)
@@ -212,12 +213,12 @@ def small_cap_fund_daily_restricted(filter_csv, tcp):
                 st.markdown(get_table_download_link(month_table, 'month_distribution'), unsafe_allow_html=True)
                 # month distribution plots
                 st.write('Charts')
-                chart_expander = st.beta_expander(label='Charts')
+                chart_expander = st.expander(label='Charts')
                 with chart_expander:
                     generate_charts(month_table)
                 # Overall result
                 st.write('Overall Results:')
-                table_expander = st.beta_expander(label='Overall Table')
+                table_expander = st.expander(label='Overall Table')
                 with table_expander:
                     st.table(display_total_df)
                 st.write('### Download Overall.csv')
@@ -246,14 +247,14 @@ def portfolio(filter_csv, dataset, tcp):
         with col1:
             start_date = st.date_input(
                 label="Start date",
-                value=date(2016, 7, 12),
+                value=date(2021, 1, 1),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17),
             )
         with col2:
             end_date = st.date_input(
                 label="End date",
-                value=date(2016, 7, 14),#date(2021, 2, 9),
+                value=date(2021, 5, 12),#date(2021, 2, 9),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17)
             )
@@ -264,22 +265,22 @@ def portfolio(filter_csv, dataset, tcp):
         col1, col2 = st.columns(2)
         with col1:
             price_lower_limit = st.number_input(
-                label="Price lower bound($)", min_value=0.0, value=1.0
+                label="Price lower bound($)", min_value=0.0, value=0.01
             )
         with col2:
             price_upper_limit = st.number_input(
-                label="Price upper bound($)", value=6.0
+                label="Price upper bound($)", value=100000.0
             )
         # Return lookback
         st.write('Short Term Return Lookback')
         col11, col22 = st.columns(2)
         with col11:
             # short term ret range
-            short_term_ret_lower = st.number_input(label='Lower bound(%)', value=10.0, min_value=-90.0, step=1.0,
+            short_term_ret_lower = st.number_input(label='Lower bound(%)', value=50.0, min_value=-90.0, step=1.0,
                                                    key='short_lower')
             short_term_ret_lower /= 100
         with col22:
-            short_term_ret_upper = st.number_input(label='Upper bound(%)', value=50.0, min_value=-90.0, step=1.0,
+            short_term_ret_upper = st.number_input(label='Upper bound(%)', value=1000.0, min_value=-90.0, step=1.0,
                                                    key='short_upper')
             short_term_ret_upper /= 100
 
@@ -287,11 +288,11 @@ def portfolio(filter_csv, dataset, tcp):
         col111, col222 = st.columns(2)
         with col111:
             # long term ret range
-            long_term_ret_lower = st.number_input(label='Lower bound(%)', value=20.0, min_value=-90.0, step=1.0,
+            long_term_ret_lower = st.number_input(label='Lower bound(%)', value=0.0, min_value=-90.0, step=1.0,
                                                   key='long_lower')
             long_term_ret_lower /= 100
         with col222:
-            long_term_ret_upper = st.number_input(label='Upper bound(%)', value=100.0, min_value=-90.0, step=1.0,
+            long_term_ret_upper = st.number_input(label='Upper bound(%)', value=1000.0, min_value=-90.0, step=1.0,
                                                   key='long_upper')
             long_term_ret_upper /= 100
 
@@ -300,19 +301,19 @@ def portfolio(filter_csv, dataset, tcp):
         col1111, col2222 = st.columns(2)
         with col1111:
             avg_daily_dollar_vol_lower = st.number_input(label='Average Daily Dollar Volume Lower Bound($)',
-                                                         value=100000.0, min_value=0.0, step=0.01)
-            median_daily_volume_lower = st.number_input(label='Median Daily Volume Lower Bound($)', value=100000.0,
+                                                         value=1000000.0, min_value=0.0, step=0.01)
+            median_daily_volume_lower = st.number_input(label='Median Daily Volume Lower Bound($)', value=1000000.0,
                                                         min_value=0.0, step=0.01)
         with col2222:
             avg_daily_dollar_vol_upper = st.number_input(label='Average Daily Dollar Volume Upper Bound($)',
-                                                         value=1000000.0, min_value=0.0, step=0.01)
-            median_daily_volume_upper = st.number_input(label='Median Daily Volume Upper Bound($)', value=1000000.0,
+                                                         value=1000000000000000.0, min_value=0.0, step=0.01)
+            median_daily_volume_upper = st.number_input(label='Median Daily Volume Upper Bound($)', value=1000000000000000.0,
                                                         min_value=0.0, step=0.01)
         # dollar volume ratio range
         st.write('Dollar Volume Ratio Range')
         col11111, col22222 = st.columns(2)
         with col11111:
-            dollar_vol_ratio_lower = st.number_input(label='Ratio Lower Bound', min_value=0.0, value=3.0,
+            dollar_vol_ratio_lower = st.number_input(label='Ratio Lower Bound', min_value=0.0, value=2.0,
                                                      step=0.01)
         with col22222:
             dollar_vol_ratio_upper = st.number_input(label='Ratio Upper Bound', min_value=0.0, value=100.0, step=0.01)
@@ -320,149 +321,156 @@ def portfolio(filter_csv, dataset, tcp):
         st.write('Trailing Stop loss')
         col111111, col222222 = st.columns(2)
         with col111111:
-            range_test = st.number_input(label='Days Holding Test', min_value=1, value=45, step=1)
-            dropdown_allow_in_gain = st.number_input(label='Stop Loss After-Test Period(%)', min_value=0, value=25)
+            range_test = st.number_input(label='Days Holding Test', min_value=1, value=5, step=1)
+            dropdown_allow_in_gain = st.number_input(label='Stop Loss After-Test Period(%)', min_value=0, value=30)
 
         with col222222:
-            stop_loss_test_period = st.number_input(label='Stop Loss Test Period (%)', min_value=1, value=40)
-            stop_gain_test_period = st.number_input(label='Stop Gain Resistance Test Period(%)', min_value=1, value=50)
-
+            stop_loss_test_period = st.number_input(label='Stop Loss Test Period (%)', min_value=1, value=20)
+            stop_gain_test_period = st.number_input(label='Stop Gain Resistance Test Period(%)', min_value=1, value=15)
 
         st.write('Portfolio')
         col111111, col222222 = st.columns(2)
         with col111111:
             cash = st.number_input(label='Initial Investment', min_value=1000, value=10000, step=1)
-            slippage = st.number_input(label='Slippage (%)', min_value=0.0, value=2.0, step=0.01)
+            slippage = st.number_input(label='Slippage (%)', min_value=0.0, value=0.0, step=0.01)
 
         with col222222:
             max_weight = st.number_input(label='Max Weight Single Position(%)', min_value=0, value=20)
             min_weight = st.number_input(label='Min Weight Single Position(%)', min_value=0, value=10)
 
-
-
-
         submitted = st.form_submit_button("Submit")
 
-
-
         if submitted:
-            reserch = filter_onePeriod(dataframe=filter_csv, start_date=start_date, end_date=end_date,
-                                       price_lower_limit=price_lower_limit, price_upper_limit=price_upper_limit,
-                                       short_term_ret_lower=short_term_ret_lower,
-                                       short_term_ret_upper=short_term_ret_upper,
-                                       long_term_ret_lower=long_term_ret_lower, long_term_ret_upper=long_term_ret_upper,
-                                       avg_daily_dollar_vol_lower=avg_daily_dollar_vol_lower,
-                                       avg_daily_dollar_vol_upper=avg_daily_dollar_vol_upper,
-                                       median_daily_dollar_vol_lower=median_daily_volume_lower,
-                                       median_daily_dollar_vol_upper=median_daily_volume_upper,
-                                       dollar_vol_ratio_lower=dollar_vol_ratio_lower,
-                                       dollar_vol_ratio_upper=dollar_vol_ratio_upper)
-            if type(reserch) is tuple or reserch.empty:
-                st.write('No Results Avaible')
-            else:
-                # trailing stop loss
-                symbols = reserch['stocks'].to_list()
-                dates = reserch['date'].dt.strftime('%Y-%m-%d').to_list()
-                after_buy = after_buy_multiple(symbols, dates, tcp=tcp, range_test=range_test,
-                                               stop_loss_test_period=stop_loss_test_period,
-                                               stop_gain_test_period=stop_gain_test_period,
-                                               dropdown_allow_in_gain=dropdown_allow_in_gain,
-                                               slippage=slippage)
-                res = defaultdict(list)
-                for sub in after_buy:
-                    for key in sub:
-                        res[key].append(sub[key])
-                stop_loss_ret = dict(res)
+            with st.spinner("Generating Trading actions:..."):
+                reserch = filter_onePeriod(dataframe=filter_csv, start_date=start_date, end_date=end_date,
+                                        price_lower_limit=price_lower_limit, price_upper_limit=price_upper_limit,
+                                        short_term_ret_lower=short_term_ret_lower,
+                                        short_term_ret_upper=short_term_ret_upper,
+                                        long_term_ret_lower=long_term_ret_lower, long_term_ret_upper=long_term_ret_upper,
+                                        avg_daily_dollar_vol_lower=avg_daily_dollar_vol_lower,
+                                        avg_daily_dollar_vol_upper=avg_daily_dollar_vol_upper,
+                                        median_daily_dollar_vol_lower=median_daily_volume_lower,
+                                        median_daily_dollar_vol_upper=median_daily_volume_upper,
+                                        dollar_vol_ratio_lower=dollar_vol_ratio_lower,
+                                        dollar_vol_ratio_upper=dollar_vol_ratio_upper)
+                if type(reserch) is tuple or reserch.empty:
+                    st.write('No Results Avaible')
+                else:
+                    # trailing stop loss
+                    symbols = reserch['stocks'].to_list()
+                    dates = reserch['date'].dt.strftime('%Y-%m-%d').to_list()
+                    after_buy = after_buy_multiple(symbols, dates, tcp=tcp, range_test=range_test,
+                                                stop_loss_test_period=stop_loss_test_period,
+                                                stop_gain_test_period=stop_gain_test_period,
+                                                dropdown_allow_in_gain=dropdown_allow_in_gain,
+                                                slippage=slippage)
+                    res = defaultdict(list)
+                    for sub in after_buy:
+                        for key in sub:
+                            res[key].append(sub[key])
+                    stop_loss_ret = dict(res)
 
-                # replace
-                reserch['cumulative_return_holdingPeriod'] = stop_loss_ret['cum_rets']
-                reserch['max_price_during_holding_period'] = stop_loss_ret['max_prices']
-                reserch['min_price_during_holding_period'] = stop_loss_ret['min_prices']
-                reserch['actual_holding_period'] = stop_loss_ret['actual_holdings']
+                    # replace
+                    reserch['cumulative_return_holdingPeriod'] = stop_loss_ret['cum_rets']
+                    reserch['max_price_during_holding_period'] = stop_loss_ret['max_prices']
+                    reserch['min_price_during_holding_period'] = stop_loss_ret['min_prices']
+                    reserch['actual_holding_period'] = stop_loss_ret['actual_holdings']
 
-                #sell_day = []
-                #for count, value in enumerate(stop_loss_ret['actual_holdings']):
-                #    af = datetime.datetime.strptime(dates[count], "%Y-%m-%d")
-                #    single_sell = af + datetime.timedelta(days=value)
-                #    sell_day.append(single_sell.strftime("%Y-%m-%d"))
-
-                # round result
-                display_total_df = reserch.copy()
-                display_total_df['buy_price'] = pd.Series(
-                    ["{0:.2f}".format(val) for val in display_total_df['buy_price']], index=display_total_df.index)
-                display_total_df['adjClose_after_holdingPeriod'] = pd.Series(
-                    ["{0:.2f}".format(val) for val in display_total_df['adjClose_after_holdingPeriod']],
-                    index=display_total_df.index)
-                display_total_df['min_price_during_holding_period'] = pd.Series(
-                    ["{0:.2f}".format(val) for val in display_total_df['min_price_during_holding_period']],
-                    index=display_total_df.index)
-                display_total_df['max_price_during_holding_period'] = pd.Series(
-                    ["{0:.2f}".format(val) for val in display_total_df['max_price_during_holding_period']],
-                    index=display_total_df.index)
-                display_total_df['dollar_volume_ratio'] = pd.Series(
-                    ["{0:.2f}".format(val) for val in display_total_df['dollar_volume_ratio']],
-                    index=display_total_df.index)
-                display_total_df['cumulative_return_holdingPeriod'] = pd.Series(
-                    ["{0:.1f}%".format(val * 100) if not math.isnan(val) else "{}".format(val) for val in
-                     display_total_df['cumulative_return_holdingPeriod']], index=display_total_df.index)
-                display_total_df['long_term_look_return'] = pd.Series(
-                    ["{0:.1f}%".format(val * 100) if not math.isnan(val) else "{}".format(val) for val in
-                     display_total_df['long_term_look_return']], index=display_total_df.index)
-                display_total_df['short_term_look_return'] = pd.Series(
-                    ["{0:.1f}%".format(val * 100) if not math.isnan(val) else "{}".format(val) for val in
-                     display_total_df['short_term_look_return']], index=display_total_df.index)
-                display_total_df['avg_daily_volume_over_volume_lookback_period'] = pd.Series(
-                    ["{}".format(int(val)) if not math.isnan(val) else "{}".format(val) for val in
-                     display_total_df['avg_daily_volume_over_volume_lookback_period']], index=display_total_df.index)
-                display_total_df['median_daily_volume_over_volume_lookback_period'] = pd.Series(
-                    ["{}".format(int(val)) if not math.isnan(val) else "{}".format(val) for val in
-                     display_total_df['median_daily_volume_over_volume_lookback_period']], index=display_total_df.index)
+                    # round result
+                    display_total_df = reserch.copy()
+                    display_total_df['buy_price'] = pd.Series(
+                        ["{0:.2f}".format(val) for val in display_total_df['buy_price']], index=display_total_df.index)
+                    display_total_df['adjClose_after_holdingPeriod'] = pd.Series(
+                        ["{0:.2f}".format(val) for val in display_total_df['adjClose_after_holdingPeriod']],
+                        index=display_total_df.index)
+                    display_total_df['min_price_during_holding_period'] = pd.Series(
+                        ["{0:.2f}".format(val) for val in display_total_df['min_price_during_holding_period']],
+                        index=display_total_df.index)
+                    display_total_df['max_price_during_holding_period'] = pd.Series(
+                        ["{0:.2f}".format(val) for val in display_total_df['max_price_during_holding_period']],
+                        index=display_total_df.index)
+                    display_total_df['dollar_volume_ratio'] = pd.Series(
+                        ["{0:.2f}".format(val) for val in display_total_df['dollar_volume_ratio']],
+                        index=display_total_df.index)
+                    display_total_df['cumulative_return_holdingPeriod'] = pd.Series(
+                        ["{0:.1f}%".format(val * 100) if not math.isnan(val) else "{}".format(val) for val in
+                        display_total_df['cumulative_return_holdingPeriod']], index=display_total_df.index)
+                    display_total_df['long_term_look_return'] = pd.Series(
+                        ["{0:.1f}%".format(val * 100) if not math.isnan(val) else "{}".format(val) for val in
+                        display_total_df['long_term_look_return']], index=display_total_df.index)
+                    display_total_df['short_term_look_return'] = pd.Series(
+                        ["{0:.1f}%".format(val * 100) if not math.isnan(val) else "{}".format(val) for val in
+                        display_total_df['short_term_look_return']], index=display_total_df.index)
+                    display_total_df['avg_daily_volume_over_volume_lookback_period'] = pd.Series(
+                        ["{}".format(int(val)) if not math.isnan(val) else "{}".format(val) for val in
+                        display_total_df['avg_daily_volume_over_volume_lookback_period']], index=display_total_df.index)
+                    display_total_df['median_daily_volume_over_volume_lookback_period'] = pd.Series(
+                        ["{}".format(int(val)) if not math.isnan(val) else "{}".format(val) for val in
+                        display_total_df['median_daily_volume_over_volume_lookback_period']], index=display_total_df.index)
 
                 # run the engine
-                reserch['date'] = reserch['date'].astype(str)
-                engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
-                engine.run()
-                portfolio_rets = pd.Series(engine.cash_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
-                # generate and save the templates
-                sp500 = qs.utils.download_returns('SPY')
-                qs.reports.html(portfolio_rets, sp500, output=os.path.join('templates', 'templates.html'), title='Crypto Strategy Tearsheet')
+                with st.spinner("Running backtesting engine..."):
+                    # set up engine
+                    reserch['date'] = reserch['date'].astype(str)
+                    engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
+                    # run
+                    engine.run()
+                    # get portfolio_rets
+                    portfolio_values = np.array(engine.cash_series) + np.array(engine.portfolio_stocks_value_series)
+                    portfolio_rets = pd.Series(portfolio_values, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
+                    # generate and save the templates
+                    sp500 = qs.utils.download_returns('BTC-USD')
+                    qs.reports.html(portfolio_rets, sp500, output=os.path.join('templates', 'templates.html'), title='Crypto Strategy Tearsheet')
+                
+                with st.spinner("Generating report:"):
+                    time.sleep(3)
 
                 # output
                 st.write('## Output:')
-                # performance
-                # st.write('Performance:')
-                # performance_expander = st.beta_expander(label='Performance')
-                # with performance_expander:
-                #     trat = get_indicators(reserch)
-                #     st.write('Performance:')
-                #     trat = trat.set_index('Indicators')
-                #     st.table(trat)
-                # # month distribution
-                # st.write('Month distribution table:')
-                # month_expander = st.beta_expander(label='Month distribution')
-                # with month_expander:
-                #     month_table = month_distribution(reserch)
-                #     st.table(month_table)
-                # st.write('Median Monthly Return: {}'.format(np.median(month_table['Avg_return'])))
-                # st.write('SD Monthly Return: {}'.format(np.std(month_table['Avg_return'])))
-                # st.markdown(get_table_download_link(month_table, 'month_distribution'), unsafe_allow_html=True)
-                # # month distribution plots
-                # st.write('Charts')
-                # chart_expander = st.beta_expander(label='Charts')
-                # with chart_expander:
-                #     generate_charts(month_table)
-                # Overall result
-                st.write('Overall Results:')
-                table_expander = st.beta_expander(label='Overall Table')
+                st.write('### Report')
+                st.write("Report link: [Report](http://192.168.1.156:8000/)")
+                st.write('### Overall Results:')
+                table_expander = st.expander(label='Overall Table')
                 with table_expander:
                     st.table(display_total_df)
+                download_expander = st.expander(label='Download')
                 st.write('### Download Overall.csv')
-                st.write('Overall.csv')
-                st.markdown(get_table_download_link(reserch, 'Overall'), unsafe_allow_html=True)
-                st.write('Overall.csv (Rounded)')
-                st.markdown(get_table_download_link(display_total_df, 'Overall'), unsafe_allow_html=True)
-                # link
-                st.write("check out this [link](http://18.118.231.59:8000/)")
+                with download_expander:
+                    st.write('Overall.csv')
+                    st.markdown(get_table_download_link(reserch, 'Overall'), unsafe_allow_html=True)
+                    st.write('Overall.csv (Rounded)')
+                    st.markdown(get_table_download_link(display_total_df, 'Overall'), unsafe_allow_html=True)
+                # trading log
+                st.write("### Trading Log")
+                dates = []
+                trans_types = []
+                symbols = []
+                dollar_vols = [] 
+                prices = []
+                stock_vals = [] 
+                pct_changes = []
+                cash_balances = []
+                portfolio_balances = []
+                holding_periods = []
+                sell_dates = []
+                for cur_rec in engine.record_logs:
+                    dates.append(cur_rec['cur_date'])
+                    trans_types.append(cur_rec['trans_type'])
+                    symbols.append(cur_rec['symbol'])
+                    dollar_vols.append(cur_rec['dollar_vol'])
+                    prices.append(cur_rec['price'])
+                    stock_vals.append(cur_rec['stock_val'])
+                    pct_changes.append(cur_rec['pct_change'])
+                    cash_balances.append(cur_rec['cash_balance'])
+                    portfolio_balances.append(cur_rec['portfolio_balance'])
+                    sell_dates.append(cur_rec['sell_date'])
+                    holding_periods.append(cur_rec['holding_days'])
+                trading_logs = pd.DataFrame({'Date': dates, 'Type': trans_types, 'Symbols': symbols, 'Dollar_vol': dollar_vols, 'Price': prices, 'Stock_Value': stock_vals,
+                                             "Pct_change": pct_changes, 'Cash_balance': cash_balances, "Portfolio_balance": portfolio_balances, 'Sell_Date': sell_dates, "Holding_Period": holding_periods,})
+                trading_log_expender = st.expander(label='Trading Log')
+                with trading_log_expender:
+                    st.write(trading_logs)
+                    st.markdown(get_table_download_link(trading_logs, 'TradingLog'), unsafe_allow_html=True)
 
 
 def app():
@@ -486,11 +494,14 @@ def app():
     info_placeholder_all.success("Overall.csv loaded")
     info_placeholder_all.empty()
     # fetch csv dataset
-    datasets = load_dataset(dir_path=os.path.join('data', 'csv'))
+    with st.spinner("Fetching dataset..."):
+        datasets = load_dataset(dir_path=os.path.join('data', 'csv'))
+    info_placeholder_all.success("dataset loaded")
+    info_placeholder_all.empty()
 
     # choose strategy
     strategy_name = st.selectbox(
-        label="Strategy", options=["Small Cap Fund Strategy Daily-Restricted", "Portfolio",
+        label="Strategy", options=["Portfolio","Small Cap Fund Strategy Daily-Restricted",
                                    "None"]
     )
     # empty strategy
