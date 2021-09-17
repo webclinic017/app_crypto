@@ -410,18 +410,16 @@ def portfolio(filter_csv, dataset, tcp):
 
                 # run the engine
                 with st.spinner("Running backtesting engine..."):
+                    # set up engine
                     reserch['date'] = reserch['date'].astype(str)
                     engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
+                    # run
                     engine.run()
-                    portfolio_rets = pd.Series(engine.portfolio_value_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
-                    # a = pd.DataFrame(engine.portfolio_value_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline])
-                    # b = pd.DataFrame(portfolio_rets)
-                    # a.to_csv('a.csv')
-                    # b.to_csv('b.csv')
-                    st.write(pd.DataFrame(engine.portfolio_value_series, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline])) #!
-                    st.write(pd.DataFrame(portfolio_rets)) #!
+                    # get portfolio_rets
+                    portfolio_values = np.array(engine.cash_series) + np.array(engine.portfolio_stocks_value_series)
+                    portfolio_rets = pd.Series(portfolio_values, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
                     # generate and save the templates
-                    sp500 = qs.utils.download_returns('SPY')
+                    sp500 = qs.utils.download_returns('SPY') # TODO: use bit coin as benchmark
                     qs.reports.html(portfolio_rets, sp500, output=os.path.join('templates', 'templates.html'), title='Crypto Strategy Tearsheet')
                 
                 with st.spinner("Generating report:"):
@@ -430,7 +428,7 @@ def portfolio(filter_csv, dataset, tcp):
                 # output
                 st.write('## Output:')
                 st.write('### Report')
-                st.write("Report link: [Report](http://155.246.218.66:8000/)")
+                st.write("Report link: [Report](http://192.168.1.156:8000/)")
                 st.write('### Overall Results:')
                 table_expander = st.expander(label='Overall Table')
                 with table_expander:
@@ -444,10 +442,35 @@ def portfolio(filter_csv, dataset, tcp):
                     st.markdown(get_table_download_link(display_total_df, 'Overall'), unsafe_allow_html=True)
                 # trading log
                 st.write("### Trading Log")
-                trading_log_expander = st.expander(label='Trading_Log')
-                with trading_log_expander:
-                    log_df = pd.DataFrame({'Log': engine.log_str})
-                    st.markdown(get_table_download_link(log_df, 'Trading_log'), unsafe_allow_html=True)
+                dates = []
+                trans_types = []
+                symbols = []
+                dollar_vols = [] 
+                prices = []
+                stock_vals = [] 
+                pct_changes = []
+                cash_balances = []
+                portfolio_balances = []
+                holding_periods = []
+                sell_dates = []
+                for cur_rec in engine.record_logs:
+                    dates.append(cur_rec['cur_date'])
+                    trans_types.append(cur_rec['trans_type'])
+                    symbols.append(cur_rec['symbol'])
+                    dollar_vols.append(cur_rec['dollar_vol'])
+                    prices.append(cur_rec['price'])
+                    stock_vals.append(cur_rec['stock_val'])
+                    pct_changes.append(cur_rec['pct_change'])
+                    cash_balances.append(cur_rec['cash_balance'])
+                    portfolio_balances.append(cur_rec['portfolio_balance'])
+                    sell_dates.append(cur_rec['sell_date'])
+                    holding_periods.append(cur_rec['holding_days'])
+                trading_logs = pd.DataFrame({'Date': dates, 'Type': trans_types, 'Symbols': symbols, 'Dollar_vol': dollar_vols, 'Price': prices, 'Stock_Value': stock_vals,
+                                             "Pct_change": pct_changes, 'Cash_balance': cash_balances, "Portfolio_balance": portfolio_balances, 'Sell_Date': sell_dates, "Holding_Period": holding_periods,})
+                trading_log_expender = st.expander(label='Trading Log')
+                with trading_log_expender:
+                    st.write(trading_logs)
+                    st.markdown(get_table_download_link(trading_logs, 'TradingLog'), unsafe_allow_html=True)
 
 
 def app():
