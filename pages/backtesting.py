@@ -419,7 +419,7 @@ def portfolio(filter_csv, dataset, tcp):
                     portfolio_values = np.array(engine.cash_series) + np.array(engine.portfolio_stocks_value_series)
                     portfolio_rets = pd.Series(portfolio_values, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
                     # generate and save the templates
-                    sp500 = qs.utils.download_returns('SPY') # TODO: use bit coin as benchmark
+                    sp500 = qs.utils.download_returns('BTC-USD')
                     qs.reports.html(portfolio_rets, sp500, output=os.path.join('templates', 'templates.html'), title='Crypto Strategy Tearsheet')
                 
                 with st.spinner("Generating report:"):
