@@ -176,12 +176,15 @@ class backtester_engine:
                     volume = i['volume']
                     price = i['price']
                     size = i['size']
-                    portfolio_stocks_value += size * price
+                    self.portfolio_stocks_value += size * price
+                    # portfolio_stocks_value += size * price
                     begining_cash -= size * price
                     sell_date = i['sell_date']
                     holding_period = (dt.datetime.strptime(sell_date, "%Y-%m-%d") - dt.datetime.strptime(cur_date, "%Y-%m-%d")).days
                     self.log(cur_date=cur_date, trans_type='buy', symbol=symbol, dollar_vol=(price * volume), price=price, stock_val=price * size, 
-                     pct_change=0.0, cash_balance=begining_cash, portfolio_balance=portfolio_stocks_value + begining_cash, sell_date=sell_date, holding_days=holding_period)
+                     pct_change=0.0, cash_balance=begining_cash, portfolio_balance=self.portfolio_stocks_value + begining_cash, sell_date=sell_date, holding_days=holding_period)
+                    # self.log(cur_date=cur_date, trans_type='buy', symbol=symbol, dollar_vol=(price * volume), price=price, stock_val=price * size, 
+                    #  pct_change=0.0, cash_balance=begining_cash, portfolio_balance=portfolio_stocks_value + begining_cash, sell_date=sell_date, holding_days=holding_period)
                     # construct action series
                     cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size'], buy_price=i['price'], date2=cur_date))
             self.sellactions.add_sell_record(cur_actions)
