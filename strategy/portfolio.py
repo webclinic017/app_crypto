@@ -70,7 +70,7 @@ class backtester_engine:
         self.min_weight = min_weight
         self.transactions_cost = transactions_cost
         self.cash_series = []
-        self.portfolio_stocks_value = 0
+        #self.portfolio_stocks_value = 0
         self.portfolio_value_series = []
         self.logs = []
         # generate the timeline
@@ -84,11 +84,18 @@ class backtester_engine:
         self.buyactions.add_buy_record(trading_symbols, trading_buydates, trading_selldates)
         self.sellactions = TradingActions()
 
-    def log(self, cur_date, action_type, symbol, volume, price, pct_change):
-        self.logs.append({'date': cur_date, 'action_type': action_type, 'symbol': symbol, 'volume': volume, 'price': price, 'pct_change': pct_change})
 
     def buy(self, cur_date):
-        # TODO: stop buy until sell it
+        holds = self.sellactions.actions
+        portfolio_stocks_value = 0
+        symbol_holding = []
+        for hold in range(len(holds)):
+            symbol_holding.append(holds[hold].symbol)
+            price = self.dataset[holds[hold].symbol].retrieve_by_date(cur_date).adjClose
+            size = holds[hold].size
+            value = price + size
+            portfolio_stocks_value += value
+
         if self.cur_cash <= 0:
             investments = []
         else:
@@ -108,8 +115,9 @@ class backtester_engine:
                 for symbol_records in list_candidates:
                     list_stock_selected.append(symbol_records['symbol'])
 
-                portfolio_value = self.portfolio_stocks_value + self.cur_cash  # FIXME: update holding stock value
-
+                portfolio_value = portfolio_stocks_value + self.cur_cash
+                # avoid to buy stocks we are holding / stop buy until sell
+                list_stock_selected = [x for x in list_stock_selected if x not in symbol_holding]
                 # check if there are stock to invest or not
                 if list_stock_selected:
                     # print('2')
@@ -155,12 +163,12 @@ class backtester_engine:
             for i in investments:
                 if len(i['stock']) != 1:
                     # log
-                    self.log(dt=cur_date, txt=f"Buy {i['stock']} at price at {i['price']} with size of {i['size']}") # FIXME:use new log function
+                    #self.log(dt=cur_date, txt=f"Buy {i['stock']} at price at {i['price']} with size of {i['size']}") # FIXME:use new log function
                     # construct action series
                     cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size']))  # TODO: record also the buy price, sell date, holding_period
             self.sellactions.add_sell_record(cur_actions)
         # update portfolio series
-        portfolio_value = self.portfolio_stocks_value + self.cur_cash
+        portfolio_value = portfolio_stocks_value + self.cur_cash
         self.portfolio_value_series.append(portfolio_value)
 
     def sell(self, cur_date):
@@ -175,7 +183,7 @@ class backtester_engine:
             # except:
             #     cur_price = self.dataset[cur_symbol].retrieve_by_date((dt.datetime.strptime(cur_date, '%Y-%m-%d') - dt.timedelta(days=1)).strftime('%Y-%m-%d')).adjClose
             # log & change cash
-            self.log(dt=cur_date, txt=f"Sell {cur_symbol} at price at {cur_price} with size of {cur_size}") #FIXME: use new log function
+            #self.log(dt=cur_date, txt=f"Sell {cur_symbol} at price at {cur_price} with size of {cur_size}") #FIXME: use new log function
             self.cur_cash += cur_size * cur_price * (1 - self.transactions_cost)
     
     # TODO: add hold function, only log, no actions
