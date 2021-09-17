@@ -247,14 +247,14 @@ def portfolio(filter_csv, dataset, tcp):
         with col1:
             start_date = st.date_input(
                 label="Start date",
-                value=date(2021, 1, 1),
+                value=date(2020, 1, 1),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17),
             )
         with col2:
             end_date = st.date_input(
                 label="End date",
-                value=date(2021, 5, 12),#date(2021, 2, 9),
+                value=date(2021, 5, 1),#date(2021, 2, 9),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17)
             )
@@ -337,6 +337,11 @@ def portfolio(filter_csv, dataset, tcp):
         with col222222:
             max_weight = st.number_input(label='Max Weight Single Position(%)', min_value=0, value=20)
             min_weight = st.number_input(label='Min Weight Single Position(%)', min_value=0, value=10)
+        spy = st.checkbox(label='SPY', value=False)
+        if spy:
+            benchmark = qs.utils.download_returns('SPY')
+        else:
+            benchmark = qs.utils.download_returns('BTC-USD')
 
         submitted = st.form_submit_button("Submit")
 
@@ -419,8 +424,7 @@ def portfolio(filter_csv, dataset, tcp):
                     portfolio_values = np.array(engine.cash_series) + np.array(engine.portfolio_stocks_value_series)
                     portfolio_rets = pd.Series(portfolio_values, index=[datetime.datetime.strptime(i, "%Y-%m-%d") for i in engine.timeline]).pct_change(1)
                     # generate and save the templates
-                    sp500 = qs.utils.download_returns('BTC-USD')
-                    qs.reports.html(portfolio_rets, sp500, output=os.path.join('templates', 'templates.html'), title='Crypto Strategy Tearsheet')
+                    qs.reports.html(portfolio_rets, benchmark=benchmark, output=os.path.join('templates', 'templates.html'), title='Crypto Strategy Tearsheet')
                 
                 with st.spinner("Generating report:"):
                     time.sleep(3)
@@ -428,7 +432,7 @@ def portfolio(filter_csv, dataset, tcp):
                 # output
                 st.write('## Output:')
                 st.write('### Report')
-                st.write("Report link: [Report](http://192.168.1.156:8000/)")
+                st.write("Report link: [Report](http://18.223.88.210:8000/)")
                 st.write('### Overall Results:')
                 table_expander = st.expander(label='Overall Table')
                 with table_expander:
@@ -467,6 +471,7 @@ def portfolio(filter_csv, dataset, tcp):
                     holding_periods.append(cur_rec['holding_days'])
                 trading_logs = pd.DataFrame({'Date': dates, 'Type': trans_types, 'Symbols': symbols, 'Dollar_vol': dollar_vols, 'Price': prices, 'Stock_Value': stock_vals,
                                              "Pct_change": pct_changes, 'Cash_balance': cash_balances, "Portfolio_balance": portfolio_balances, 'Sell_Date': sell_dates, "Holding_Period": holding_periods,})
+                trading_logs = trading_logs.drop_duplicates()
                 trading_log_expender = st.expander(label='Trading Log')
                 with trading_log_expender:
                     st.write(trading_logs)
