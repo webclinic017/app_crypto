@@ -176,6 +176,7 @@ class backtester_engine:
                     investments
 
 
+
         bought = []
         if investments:
             cur_actions = []

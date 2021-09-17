@@ -334,6 +334,7 @@ def portfolio(filter_csv, dataset, tcp):
             cash = st.number_input(label='Initial Investment', min_value=1000, value=10000, step=1)
             slippage = st.number_input(label='Slippage (%)', min_value=0.0, value=0.0, step=0.01)
 
+
         with col222222:
             max_weight = st.number_input(label='Max Weight Single Position(%)', min_value=0, value=20)
             min_weight = st.number_input(label='Min Weight Single Position(%)', min_value=0, value=10)
