@@ -165,6 +165,7 @@ class backtester_engine:
             else:
                 investments
 
+        bought = []
         if investments:
             cur_actions = []
             portfolio_stocks_value = self.portfolio_stocks_value 
@@ -180,6 +181,7 @@ class backtester_engine:
                     # portfolio_stocks_value += size * price
                     begining_cash -= size * price
                     sell_date = i['sell_date']
+                    bought.append(symbol)
                     holding_period = (dt.datetime.strptime(sell_date, "%Y-%m-%d") - dt.datetime.strptime(cur_date, "%Y-%m-%d")).days
                     self.log(cur_date=cur_date, trans_type='buy', symbol=symbol, dollar_vol=(price * volume), price=price, stock_val=price * size, 
                      pct_change=0.0, cash_balance=begining_cash, portfolio_balance=self.portfolio_stocks_value + begining_cash, sell_date=sell_date, holding_days=holding_period)
@@ -188,6 +190,8 @@ class backtester_engine:
                     # construct action series
                     cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size'], buy_price=i['price'], date2=cur_date))
             self.sellactions.add_sell_record(cur_actions)
+            
+        return bought
 
     def sell(self, cur_date):
         sell = self.sellactions.pop_by_date(cur_date)
@@ -209,21 +213,36 @@ class backtester_engine:
             self.log(cur_date=cur_date, trans_type='sell', symbol=symbol, dollar_vol=cur_price * cur_vol, price=cur_price, stock_val=cur_price * cur_size, 
                      pct_change=cur_price / buy_price - 1, cash_balance=self.cur_cash, portfolio_balance=self.portfolio_stocks_value, sell_date=cur_date, holding_days=holding_period)
     
-    def hold(self, cur_date):
+    def hold(self, cur_date, bought_symbols):
         for cur_action in self.sellactions.actions:
             # get
-            symbol = cur_action.symbol
-            buy_price = cur_action.buy_price
-            sell_date= cur_action.date
-            cur_price = self.dataset[symbol].retrieve_by_date(cur_date).adjClose
-            cur_vol = self.dataset[symbol].retrieve_by_date(cur_date).volume
-            cur_size = cur_action.size
-            buy_date = cur_action.date2
-            sell_date = cur_action.date
-            holding_period = (dt.datetime.strptime(sell_date, "%Y-%m-%d") - dt.datetime.strptime(buy_date, "%Y-%m-%d")).days
-            # log
-            self.log(cur_date=cur_date, trans_type='hold', symbol=symbol, dollar_vol=cur_price * cur_vol, price=cur_price, stock_val=cur_price * cur_size, 
-                     pct_change=cur_price / buy_price - 1, cash_balance=self.cur_cash, portfolio_balance=self.portfolio_stocks_value + self.cur_cash, sell_date=sell_date, holding_days=holding_period)
+            if len(bought_symbols) != 0:
+                symbol = cur_action.symbol
+                if symbol not in bought_symbols:
+                    buy_price = cur_action.buy_price
+                    sell_date= cur_action.date
+                    cur_price = self.dataset[symbol].retrieve_by_date(cur_date).adjClose
+                    cur_vol = self.dataset[symbol].retrieve_by_date(cur_date).volume
+                    cur_size = cur_action.size
+                    buy_date = cur_action.date2
+                    sell_date = cur_action.date
+                    holding_period = (dt.datetime.strptime(sell_date, "%Y-%m-%d") - dt.datetime.strptime(buy_date, "%Y-%m-%d")).days
+                    # log
+                    self.log(cur_date=cur_date, trans_type='hold', symbol=symbol, dollar_vol=cur_price * cur_vol, price=cur_price, stock_val=cur_price * cur_size, 
+                            pct_change=cur_price / buy_price - 1, cash_balance=self.cur_cash, portfolio_balance=self.portfolio_stocks_value + self.cur_cash, sell_date=sell_date, holding_days=holding_period)
+            else:
+                symbol = cur_action.symbol
+                buy_price = cur_action.buy_price
+                sell_date= cur_action.date
+                cur_price = self.dataset[symbol].retrieve_by_date(cur_date).adjClose
+                cur_vol = self.dataset[symbol].retrieve_by_date(cur_date).volume
+                cur_size = cur_action.size
+                buy_date = cur_action.date2
+                sell_date = cur_action.date
+                holding_period = (dt.datetime.strptime(sell_date, "%Y-%m-%d") - dt.datetime.strptime(buy_date, "%Y-%m-%d")).days
+                # log
+                self.log(cur_date=cur_date, trans_type='hold', symbol=symbol, dollar_vol=cur_price * cur_vol, price=cur_price, stock_val=cur_price * cur_size, 
+                        pct_change=cur_price / buy_price - 1, cash_balance=self.cur_cash, portfolio_balance=self.portfolio_stocks_value + self.cur_cash, sell_date=sell_date, holding_days=holding_period)
 
     def run(self):
         # clear log file
@@ -233,9 +252,9 @@ class backtester_engine:
             # sell
             self.sell(cur_date)
             # buy
-            self.buy(cur_date)
+            bought = self.buy(cur_date)
             # hold
-            self.hold(cur_date)
+            self.hold(cur_date, bought)
             # update portfolio value + cash
             self.cash_series.append(self.cur_cash)
             self.portfolio_stocks_value_series.append(self.portfolio_stocks_value)
