@@ -230,12 +230,12 @@ class backtester_engine:
         self.record_logs = []
         # run
         for cur_date in stqdm(self.timeline):
-            # hold
-            self.hold(cur_date)
             # sell
             self.sell(cur_date)
             # buy
             self.buy(cur_date)
+            # hold
+            self.hold(cur_date)
             # update portfolio value + cash
             self.cash_series.append(self.cur_cash)
             self.portfolio_stocks_value_series.append(self.portfolio_stocks_value)
