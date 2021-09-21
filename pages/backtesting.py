@@ -247,14 +247,14 @@ def portfolio(filter_csv, dataset, tcp):
         with col1:
             start_date = st.date_input(
                 label="Start date",
-                value=date(2020, 1, 1),
+                value=date(2021, 3, 3),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17),
             )
         with col2:
             end_date = st.date_input(
                 label="End date",
-                value=date(2021, 5, 1),#date(2021, 2, 9),
+                value=date(2021, 5, 17),#date(2021, 2, 9),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17)
             )
@@ -276,7 +276,7 @@ def portfolio(filter_csv, dataset, tcp):
         col11, col22 = st.columns(2)
         with col11:
             # short term ret range
-            short_term_ret_lower = st.number_input(label='Lower bound(%)', value=50.0, min_value=-90.0, step=1.0,
+            short_term_ret_lower = st.number_input(label='Lower bound(%)', value=25.0, min_value=-90.0, step=1.0,
                                                    key='short_lower')
             short_term_ret_lower /= 100
         with col22:
@@ -288,7 +288,7 @@ def portfolio(filter_csv, dataset, tcp):
         col111, col222 = st.columns(2)
         with col111:
             # long term ret range
-            long_term_ret_lower = st.number_input(label='Lower bound(%)', value=0.0, min_value=-90.0, step=1.0,
+            long_term_ret_lower = st.number_input(label='Lower bound(%)', value=-90.0, min_value=-90.0, step=1.0,
                                                   key='long_lower')
             long_term_ret_lower /= 100
         with col222:
@@ -313,7 +313,7 @@ def portfolio(filter_csv, dataset, tcp):
         st.write('Dollar Volume Ratio Range')
         col11111, col22222 = st.columns(2)
         with col11111:
-            dollar_vol_ratio_lower = st.number_input(label='Ratio Lower Bound', min_value=0.0, value=2.0,
+            dollar_vol_ratio_lower = st.number_input(label='Ratio Lower Bound', min_value=0.0, value=0.5,
                                                      step=0.01)
         with col22222:
             dollar_vol_ratio_upper = st.number_input(label='Ratio Upper Bound', min_value=0.0, value=100.0, step=0.01)
@@ -321,23 +321,23 @@ def portfolio(filter_csv, dataset, tcp):
         st.write('Trailing Stop loss')
         col111111, col222222 = st.columns(2)
         with col111111:
-            range_test = st.number_input(label='Days Holding Test', min_value=1, value=5, step=1)
+            range_test = st.number_input(label='Days Holding Test', min_value=1, value=45, step=1)
             dropdown_allow_in_gain = st.number_input(label='Stop Loss After-Test Period(%)', min_value=0, value=30)
 
         with col222222:
-            stop_loss_test_period = st.number_input(label='Stop Loss Test Period (%)', min_value=1, value=20)
-            stop_gain_test_period = st.number_input(label='Stop Gain Resistance Test Period(%)', min_value=1, value=15)
+            stop_loss_test_period = st.number_input(label='Stop Loss Test Period (%)', min_value=1, value=8)
+            stop_gain_test_period = st.number_input(label='Stop Gain Resistance Test Period(%)', min_value=1, value=1000)
 
         st.write('Portfolio')
         col111111, col222222 = st.columns(2)
         with col111111:
-            cash = st.number_input(label='Initial Investment', min_value=1000, value=10000, step=1)
+            cash = st.number_input(label='Initial Investment', min_value=1000, value=100000, step=1)
             slippage = st.number_input(label='Slippage (%)', min_value=0.0, value=0.0, step=0.01)
 
 
         with col222222:
-            max_weight = st.number_input(label='Max Weight Single Position(%)', min_value=0, value=20)
-            min_weight = st.number_input(label='Min Weight Single Position(%)', min_value=0, value=10)
+            max_weight = st.number_input(label='Max Weight Single Position(%)', min_value=0, value=10)
+            min_weight = st.number_input(label='Min Weight Single Position(%)', min_value=0, value=8)
         spy = st.checkbox(label='SPY', value=False)
         if spy:
             benchmark = qs.utils.download_returns('SPY')
@@ -419,6 +419,7 @@ def portfolio(filter_csv, dataset, tcp):
                     # set up engine
                     reserch['date'] = reserch['date'].astype(str)
                     engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
+                    st.write(engine.buyactions.actions) #FIXME:
                     # run
                     engine.run()
                     # get portfolio_rets
@@ -431,6 +432,7 @@ def portfolio(filter_csv, dataset, tcp):
                     time.sleep(3)
 
                 # output
+                st.write(engine.timeline)
                 st.write('## Output:')
                 st.write('### Report')
                 st.write("Report link: [Report](http://18.223.88.210:8000/)")

@@ -3,6 +3,7 @@
 
 # dependencies
 import random
+random.seed(77)
 import streamlit as st
 import datetime as dt
 import streamlit as st
@@ -77,7 +78,7 @@ class backtester_engine:
         # generate the trading actions
         trading_symbols = overall['stocks'].tolist()
         trading_buydates = overall['date'].tolist()
-        trading_selldates = [(dt.datetime.strptime(date, '%Y-%m-%d') + dt.timedelta(days=days)).strftime('%Y-%m-%d') for
+        trading_selldates = [(dt.datetime.strptime(date, '%Y-%m-%d') + dt.timedelta(days=(days - 1))).strftime('%Y-%m-%d') for
                              date, days in zip(trading_buydates, overall['actual_holding_period'].tolist())]
         self.buyactions = TradingActions()
         self.buyactions.add_buy_record(trading_symbols, trading_buydates, trading_selldates)
@@ -221,7 +222,7 @@ class backtester_engine:
             self.portfolio_stocks_value -= sell_amount
             # log
             self.log(cur_date=cur_date, trans_type='sell', symbol=symbol, dollar_vol=cur_price * cur_vol, price=cur_price, stock_val=cur_price * cur_size,
-                     pct_change=cur_price / buy_price - 1, cash_balance=self.cur_cash, portfolio_balance=self.portfolio_stocks_value, sell_date=cur_date, holding_days=holding_period)
+                     pct_change=cur_price / buy_price - 1, cash_balance=self.cur_cash, portfolio_balance=self.portfolio_stocks_value + self.cur_cash, sell_date=cur_date, holding_days=holding_period)
 
     def hold(self, cur_date, bought_symbols):
         for cur_action in self.sellactions.actions:
