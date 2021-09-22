@@ -103,6 +103,7 @@ class backtester_engine:
         self.portfolio_stocks_value = portfolio_stocks_value
 
         if self.cur_cash <= 0:
+            buy = self.buyactions.pop_by_date(cur_date)
             investments = []
         else:
             investments = []
@@ -117,18 +118,21 @@ class backtester_engine:
                 day_symbols['sell_date'] = buy[symbol].date2
                 list_candidates.append(day_symbols)
 
-            #st.write(f"list of candidates : {list_candidates}")
+            # if cur_date == "2021-04-17" or cur_date == "2021-04-18":
+            #     st.write(cur_date)
+            #     st.write('Buy:')
+            #     st.write(self.buyactions.actions)
+            #     st.write('Sell:')
+            #     st.write(self.sellactions.actions)
+            #     st.write("*" * 30)
             if list_candidates:
                 list_stock_selected = []
                 for symbol_records in list_candidates:
                     list_stock_selected.append(symbol_records['symbol'])
-                #st.write(f"list_stock_selected : {list_stock_selected}")
                 portfolio_value = self.portfolio_stocks_value + self.cur_cash
                 # avoid to buy stocks we are holding / stop buy until sell
                 list_stock_selected = [x for x in list_stock_selected if x not in symbol_holding]
 
-                #st.write(f"symbol_holding{symbol_holding}")
-                #st.write(f"list_stock_selected{list_stock_selected}")
                 # check if there are stock to invest or not
                 if list_stock_selected:
                     # print('2')
@@ -138,10 +142,8 @@ class backtester_engine:
                     list_stock_selected = random.choices(list_stock_selected, k=len(list_stock_selected))
                     list_stock_selected = list(set(list_stock_selected))
                     for tre in range(len(list_stock_selected)):
-                        #st.write(i)
                         if self.cur_cash >= max_perc * portfolio_value:
                             for single_candidate in list_candidates:
-                                #st.write(f"single_candidate:{single_candidate}")
                                 if list_stock_selected[tre] == single_candidate['symbol']:
                                     stock_to_invest = {'stock': [], 'buy_day': [], 'price': [], 'money_to_invest': [],
                                                        'size': [], 'sell_date': [], 'volume': []}
@@ -153,7 +155,6 @@ class backtester_engine:
                                     stock_to_invest['sell_date'] = single_candidate['sell_date']
                                     stock_to_invest['volume'] = single_candidate['volume']
                             investments.append(stock_to_invest)
-                            #st.write(f"investments: {investments}")
                             self.cur_cash = self.cur_cash - max_perc * portfolio_value
                         elif max_perc * portfolio_value > self.cur_cash >= (min_perc * portfolio_value):
                             for single_candidate in list_candidates:
@@ -201,6 +202,7 @@ class backtester_engine:
                     # construct action series
                     cur_actions.append(TradingActionSingle(symbol=i['stock'], date=i['sell_date'], size=i['size'], buy_price=i['price'], date2=cur_date))
             self.sellactions.add_sell_record(cur_actions)
+            #st.write(self.sellactions.actions)
 
         return bought
 

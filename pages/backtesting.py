@@ -363,6 +363,8 @@ def portfolio(filter_csv, dataset, tcp):
                     st.write('No Results Avaible')
                 else:
                     # trailing stop loss
+                    reserch = reserch[reserch['stocks']!= 'USDT-USD']
+                    #st.write(reserch)
                     symbols = reserch['stocks'].to_list()
                     dates = reserch['date'].dt.strftime('%Y-%m-%d').to_list()
                     after_buy = after_buy_multiple(symbols, dates, tcp=tcp, range_test=range_test,
@@ -419,7 +421,7 @@ def portfolio(filter_csv, dataset, tcp):
                     # set up engine
                     reserch['date'] = reserch['date'].astype(str)
                     engine = backtester_engine(overall=reserch, dataset=dataset, start_date=start_date, end_date=end_date, cash=cash, transactions_cost=slippage / 100, max_weight=max_weight, min_weight=min_weight)
-                    st.write(engine.buyactions.actions) #FIXME:
+                    #st.write(engine.buyactions.actions) #FIXME:
                     # run
                     engine.run()
                     # get portfolio_rets
@@ -432,7 +434,7 @@ def portfolio(filter_csv, dataset, tcp):
                     time.sleep(3)
 
                 # output
-                st.write(engine.timeline)
+                #st.write(engine.timeline)
                 st.write('## Output:')
                 st.write('### Report')
                 st.write("Report link: [Report](http://18.223.88.210:8000/)")
