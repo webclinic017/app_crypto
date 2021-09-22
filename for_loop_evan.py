@@ -231,8 +231,8 @@ if __name__ == "__main__":
     for i in range(9):
         cur_log, cur_research = portfolio(
             filter_csv,
-            dataset,
-            tcp,
+            dataset=datasets,
+            tcp= tcp,
             start_date=start_date[i],
             end_date=end_date[i],
             price_lower_limit=price_lower_limit[i],
@@ -242,7 +242,7 @@ if __name__ == "__main__":
             long_term_ret_lower=long_term_ret_lower[i],
             long_term_ret_upper=long_term_ret_upper[i],
             avg_daily_dollar_vol_lower=avg_daily_dollar_vol_lower[i],
-            median_daily_volume_lower=median_daily_dollar_vol_lower[i],
+            median_daily_volume_lower=median_daily_volume_lower[i],
             avg_daily_dollar_vol_upper=avg_daily_dollar_vol_upper[i],
             median_daily_volume_upper=median_daily_volume_upper[i],
             dollar_vol_ratio_lower=dollar_vol_ratio_lower[i],
@@ -256,7 +256,8 @@ if __name__ == "__main__":
             max_weight=max_weight[i],
             min_weight=min_weight[i],
             report_name=f"{i}.html",
+            benchmark=benchmark
         )
         # save
         cur_log.to_csv(os.path.join("trading_logs", f"{i}.csv"))
-        overall.to_csv(os.path.join("overalls", f"{i}.csv"))
+        cur_research.to_csv(os.path.join("overalls", f"{i}.csv"))
