@@ -229,6 +229,7 @@ if __name__ == "__main__":
 
     # loop
     for i in range(9):
+        print(f'Batch {i} start..')
         cur_log, cur_research = portfolio(
             filter_csv,
             dataset=datasets,
@@ -261,3 +262,4 @@ if __name__ == "__main__":
         # save
         cur_log.to_csv(os.path.join("trading_logs", f"{i}.csv"))
         cur_research.to_csv(os.path.join("overalls", f"{i}.csv"))
+        print(f'Batch {i} finished.')
