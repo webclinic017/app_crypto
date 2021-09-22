@@ -247,14 +247,14 @@ def portfolio(filter_csv, dataset, tcp):
         with col1:
             start_date = st.date_input(
                 label="Start date",
-                value=date(2021, 3, 3),
+                value=date(2021, 1, 1),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17),
             )
         with col2:
             end_date = st.date_input(
                 label="End date",
-                value=date(2021, 5, 17),#date(2021, 2, 9),
+                value=date(2021, 3, 31),#date(2021, 2, 9),
                 min_value=date(2015, 5, 26),
                 max_value=date(2021, 5, 17)
             )
